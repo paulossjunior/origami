@@ -22,6 +22,7 @@ function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[]): string {
     "Issue key,Summary,Description,Status,Labels,Issue Type,Parent"
     ${createLinesFromEpic(epics)}
     ${createLinesFromUserStories(atomicUserStories)}
+    ${createTaskLinesFromUserStory(atomicUserStories)}
     `
 }
 
@@ -44,7 +45,13 @@ function createLinesFromUserStories(atomicUserStories: AtomicUserStory[]): strin
     `
 }
 function createLineFromUserStory(atomicUserStory: AtomicUserStory): string {
-    return expandToString`
-    ${atomicUserStory.id},${atomicUserStory.name},${atomicUserStory.name},To Do,Feature,Story,${atomicUserStory.epic?.type.ref?.name ??'' }
+    return expandToStringWithNL`
+    ${atomicUserStory.id},${atomicUserStory.name},${atomicUserStory.name},To Do,Feature,Story,EPIC-${atomicUserStory.epic?.type.ref?.id ??'' }
+    `
+}
+
+function createTaskLinesFromUserStory(atomicUserStories: AtomicUserStory[]): string {
+    return expandToStringWithNL`
+    ${atomicUserStories.map(atomicUserStory=> createLineFromUserStory(atomicUserStory))}
     `
 }

@@ -31,6 +31,18 @@ AtomicUserStoryActivity:
     'activity' ':' type=[Activity:QualifiedName]
 ;
 
+TaksBacklog:
+    'task' id=ID '{'
+        (Name 
+        |Description 
+        |userstory=AtomicUserStoryTask)*
+        '}'
+;
+
+AtomicUserStoryTask:
+    'userstory' ':' type=[AtomicUserStory:QualifiedName]
+;
+
 
 
 
