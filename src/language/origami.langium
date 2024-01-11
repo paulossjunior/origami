@@ -7,7 +7,7 @@ import 'backlog'
 import 'processes'
 
 entry Model:    
-    (project=Project)?
+    (project=Project)
     (components+=(Process|Backlog))*
 
 ;

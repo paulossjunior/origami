@@ -10,6 +10,7 @@ import { Model, isBacklog, isEpic, isProcess} from "./generated/ast.js";
 export class CustomScopeComputation extends DefaultScopeComputation {
     override async computeExports(document: LangiumDocument<AstNode>, cancelToken?: CancellationToken | undefined): Promise<AstNodeDescription[]> {
         // Os nós que normalmente estariam no escopo global
+        
         const default_global = await super.computeExports(document, cancelToken)
 
         const root = document.parseResult.value as Model
@@ -20,16 +21,21 @@ export class CustomScopeComputation extends DefaultScopeComputation {
         
             root.components.filter(isBacklog).flatMap(backlog => 
                 backlog.userstories.filter(isEpic).map(epic => this.exportNode(epic, default_global, document)
-                ))    
-         
-        const processes = root.components.filter(isProcess).flatMap(process => this.descriptions.createDescription(process, `${process.name}`, document))
+                ))   
 
-        root.components.filter(isProcess).flatMap(process => this.exportNode(process, default_global, document))  
+        // Define Process as Global
+        const processes = root.components.filter(isProcess).flatMap(
+            process => this.descriptions.createDescription(process, `${process.name}`, document))
 
+        root.components.filter(isProcess).flatMap(
+            process => this.exportNode(process, default_global, document))  
+       
+        // Define Activity 
         const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.$container.name}.${activity.name}`, document)))  
 
         root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.exportNode(activity, default_global, document)))
-                      
+        
+        
         return default_global.concat(epics).concat(processes).concat(activities)
     }
 }

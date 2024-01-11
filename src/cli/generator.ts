@@ -1,11 +1,11 @@
-import path from 'path';
-import { Model } from '../language-server/generated/ast';
-import { generateJIRACSV } from './jira_generator/main-generator';
+import type { Model } from '../language/generated/ast.js';
+import * as path from 'node:path';
+import {generateJiraCSV} from './jira_generator/main-generator.js'
 
 export function generateJavaScript(model: Model, filePath: string, destination: string | undefined): string {
     const final_destination = extractDestination(filePath, destination)
-    
-    generateJIRACSV(model,final_destination)
+
+    generateJiraCSV(model,final_destination)
    
     return final_destination;
 }

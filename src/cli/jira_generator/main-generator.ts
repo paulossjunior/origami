@@ -1,10 +1,10 @@
-import { Epic, AtomicUserStory, isAtomicUserStory, isBacklog, isEpic, Model } from '../../language-server/generated/ast.js'
+import { Epic, AtomicUserStory, isAtomicUserStory, isBacklog, isEpic, Model } from '../../language/generated/ast.js'
 import fs from "fs";
 import { createPath} from '../generator-utils.js'
 import path from 'path'
 import { expandToString, expandToStringWithNL } from 'langium';
 
-export function generateJIRACSV(model: Model, target_folder: string) : void {
+export function generateJiraCSV(model: Model, target_folder: string) : void {
     
     fs.mkdirSync(target_folder, {recursive:true})
 
@@ -14,7 +14,7 @@ export function generateJIRACSV(model: Model, target_folder: string) : void {
 
     const JIRA_PATH = createPath(target_folder,'jira')
     
-    fs.writeFileSync(path.join(JIRA_PATH, "/jira-backlog.md"), createCSV(epics,userStories))
+    fs.writeFileSync(path.join(JIRA_PATH, "/jira-backlog.csv"), createCSV(epics,userStories))
 }
 
 function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[]): string {
@@ -34,7 +34,7 @@ function createLinesFromEpic(epics: Epic[]): string{
 
 function createLineFromEpic(epic: Epic): string{
     return expandToString`
-    ${epic.id},${epic.name},This is a EPIC,To Do,Feature,Epic,,
+    ${epic.id},${epic.name},${epic.name},To Do,Feature,Epic,
     `
 }
 
@@ -45,6 +45,6 @@ function createLinesFromUserStories(atomicUserStories: AtomicUserStory[]): strin
 }
 function createLineFromUserStory(atomicUserStory: AtomicUserStory): string {
     return expandToString`
-    ${atomicUserStory.id},${atomicUserStory.name},This is a user story,To Do,Feature,Story,,
+    ${atomicUserStory.id},${atomicUserStory.name},${atomicUserStory.name},To Do,Feature,Story,${atomicUserStory.epic?.type.ref?.name ??'' }
     `
 }

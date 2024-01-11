@@ -2,11 +2,11 @@
     "projectName": "Origami",
     "languages": [{
         "id": "origami",
-        "grammar": "src/language-server/origami.langium",
+        "grammar": "src/language/origami.langium",
         "fileExtensions": [".origami"],
         "textMate": {
             "out": "syntaxes/origami.tmLanguage.json"
         }
     }],
-    "out": "src/language-server/generated"
+    "out": "src/language/generated"
 }

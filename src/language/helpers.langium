@@ -1,10 +1,5 @@
 import 'terminals'
 
-
-fragment Identification:
-    'id' ':' Identification=ID
-;
-
 QualifiedName returns string:
     ID ('.' ID)*
 ;
@@ -19,4 +14,12 @@ fragment Description:
 
 fragment Name:
     'name' ':' name=STRING
+;
+
+fragment Identification:
+    'id' ':' Identification=ID
+;
+
+fragment FullName: 
+    'fullName' ':' fullName = STRING
 ;
