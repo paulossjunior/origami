@@ -19,7 +19,7 @@ export function generateJiraCSV(model: Model, target_folder: string) : void {
 
 function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[]): string {
     return expandToStringWithNL`
-    "Issue key,Summary,Description,Status,Labels,Issue Type,Parent"
+    Issue key,Summary,Description,Status,Labels,Issue Type,Parent
     ${createLinesFromEpic(epics)}
     ${createLinesFromUserStories(atomicUserStories)}
     ${createTaskLinesFromUserStory(atomicUserStories)}
