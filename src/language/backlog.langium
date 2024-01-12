@@ -11,7 +11,7 @@ Epic :
     'epic' id=ID '{'
         (Name 
         |Description 
-        |process?=EpicProcess)*
+        |process=EpicProcess)*
         '}'
 ;
 

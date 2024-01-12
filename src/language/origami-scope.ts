@@ -21,10 +21,15 @@ export class CustomScopeComputation extends DefaultScopeComputation {
         
         const userstories = root.components.filter(isBacklog).flatMap(backlog => 
             backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.descriptions.createDescription(atomicUserStory, `${atomicUserStory.id}`, document)))   
+       
         // Define Process as Global
         const processes = root.components.filter(isProcess).flatMap(
             process => this.descriptions.createDescription(process, `${process.id}`, document))
 
+            root.components.filter(isProcess).map(
+                process => this.exportNode(process, default_global, document))
+           
+    
          
         // Define Activity 
         const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.id}`, document)))
