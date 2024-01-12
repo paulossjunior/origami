@@ -1,8 +1,8 @@
 import 'helpers'
 
 Process:
-    'process' name=ID'{'
-        Name
+    'process' id=ID'{'
+        |Name
         |Description
         |(activities+=Activity)*
     '}'
@@ -10,7 +10,7 @@ Process:
 
 Activity:
     'activity' id=ID '{'
-        Name
+        |Name
         |Description
         |(taskes+=Task)*
     '}'
@@ -18,7 +18,7 @@ Activity:
 
 Task:
     'task' id=ID '{'
-        Name
+        |Name
         |Description
         
     '}'

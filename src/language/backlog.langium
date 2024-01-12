@@ -2,8 +2,8 @@
 import 'processes'
 
 Backlog:
-    'backlog' name=ID '{'
-        (userstories += (Epic|AtomicUserStory))*
+    'backlog' id=ID '{'
+        (userstories += (Epic|AtomicUserStory|TaksBacklog))*
     '}' 
     ;
 
@@ -20,7 +20,12 @@ EpicProcess:
 ;
 
 AtomicUserStory :
-    'userstory' id=ID '{' (Name | Description| epic=AtomicUserStoryEpic |activity=AtomicUserStoryActivity)*'}'
+    'userstory' id=ID '{' 
+        (Name 
+        | Description
+        | epic=AtomicUserStoryEpic 
+        |activity=AtomicUserStoryActivity
+        )*'}'
 ;
 
 AtomicUserStoryEpic:

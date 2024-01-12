@@ -28,7 +28,7 @@ function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[]): string {
 
 
 function createLinesFromEpic(epics: Epic[]): string{
-    return expandToStringWithNL`
+    return expandToString`
     ${epics.map(epic => createLineFromEpic(epic)).join('\n')}
     `
 }
@@ -40,18 +40,18 @@ function createLineFromEpic(epic: Epic): string{
 }
 
 function createLinesFromUserStories(atomicUserStories: AtomicUserStory[]): string {
-    return expandToStringWithNL`
+    return expandToString`
     ${atomicUserStories.map(atomicUserStory=> createLineFromUserStory(atomicUserStory))}
     `
 }
 function createLineFromUserStory(atomicUserStory: AtomicUserStory): string {
-    return expandToStringWithNL`
+    return expandToString`
     ${atomicUserStory.id},${atomicUserStory.name},${atomicUserStory.name},To Do,Feature,Story,EPIC-${atomicUserStory.epic?.type.ref?.id ??'' }
     `
 }
 
 function createTaskLinesFromUserStory(atomicUserStories: AtomicUserStory[]): string {
-    return expandToStringWithNL`
+    return expandToString`
     ${atomicUserStories.map(atomicUserStory=> createLineFromUserStory(atomicUserStory))}
     `
 }
