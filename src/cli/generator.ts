@@ -1,7 +1,7 @@
 import type { Model } from '../language/generated/ast.js';
 import * as path from 'node:path';
 import {generateJiraCSV} from './jira_generator/generator-csv.js'
-import {generateAPI} from './jira_generator/jira-integration.js'
+import {generateAPI} from './jira_generator/integration.js'
 
 export function generateJavaScript(model: Model, filePath: string, destination: string | undefined): string {
     const final_destination = extractDestination(filePath, destination)

@@ -46,9 +46,9 @@ async function  createUserStoryFromActivity (activity: Activity, epicID: string)
   const userStoryID = jiraIntegration.createUserStory(activity.name,activity.description, epicID)
 
   userStoryID.then((id) => {
-    
+    // Erro de promises aqui
     activity.tasks.map(task => {
-      jiraIntegration.createTask(task.name,task.description,epicID);
+      jiraIntegration.createSubTask(task.name,task.description,id);
 
     })
 
