@@ -1,6 +1,6 @@
 import { AstNode, AstNodeDescription, DefaultScopeComputation, LangiumDocument } from "langium";
 import { CancellationToken } from "vscode-languageclient";
-import { Model, isBacklog, isEpic,isProcess} from "./generated/ast.js";
+import { Model, isBacklog, isEpic,isProcess,isAtomicUserStory} from "./generated/ast.js";
 
 /**
  * Gerador customizado para o escopo global do arquivo.
@@ -19,23 +19,27 @@ export class CustomScopeComputation extends DefaultScopeComputation {
         const epics = root.components.filter(isBacklog).flatMap(backlog => 
             backlog.userstories.filter(isEpic).map(epic => this.descriptions.createDescription(epic, `${epic.id}`, document)))
         
-        /*const userstories = root.components.filter(isBacklog).flatMap(backlog => 
-            backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.descriptions.createDescription(atomicUserStory, `${atomicUserStory.id}`, document)))   */
-       
+        const userstories = root.components.filter(isBacklog).flatMap(backlog => 
+            backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.descriptions.createDescription(atomicUserStory, `${atomicUserStory.id}`, document)))
+            
+        root.components.filter(isBacklog).flatMap(backlog => 
+                backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.exportNode(atomicUserStory, default_global, document)))
+
         // Define Process as Global
         const processes = root.components.filter(isProcess).flatMap(
             process => this.descriptions.createDescription(process, `${process.id}`, document))
 
-            root.components.filter(isProcess).map(
+        root.components.filter(isProcess).map(
                 process => this.exportNode(process, default_global, document))
-           
-    
-         
-        // Define Activity 
-        //const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.id}`, document)))
         
-        //userstories activities
+        // Define Activity as Global
+        const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.id}`, document)))
         
-        return default_global.concat(epics,processes)
+        root.components.filter(isProcess).flatMap(process => process.activities.map(activity =>this.exportNode(activity, default_global, document)))
+        
+        // Define Task as Global
+        const tasks =  root.components.filter(isProcess).flatMap(process => process.activities.flatMap(activity => activity.tasks.map(task => this.descriptions.createDescription(task, `${task.id}`, document))))
+        
+        return default_global.concat(epics,processes,userstories,activities,tasks)
     }
 }

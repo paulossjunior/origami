@@ -25,8 +25,8 @@ AtomicUserStory :
         |DefinitionDone
         |DefinitionReady
         |Learning
-        |'epic' epic=[Epic:QualifiedName] 
-        |'activity' activity=[Activity:QualifiedName]
+        |'epic' ':' epic=[Epic:QualifiedName] 
+        |'activity' ':' activity=[Activity:QualifiedName]
         )*'}'
 ;
 
@@ -37,8 +37,8 @@ TaksBacklog:
         |DefinitionDone
         |DefinitionReady
         |Learning 
-        |'userstory' userstory=[AtomicUserStory:QualifiedName]
-        |'task' task=[Task:QualifiedName])*
+        |'userstory'':'  userstory=[AtomicUserStory:QualifiedName]
+        |'task' ':' task=[Task:QualifiedName])*
         '}'
 ;
     
