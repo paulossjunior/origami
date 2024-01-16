@@ -23,3 +23,15 @@ fragment Identification:
 fragment FullName: 
     'fullName' ':' fullName = STRING
 ;
+
+fragment DefinitionDone:
+    'DoD' dod=STRING (',' dod+=STRING)*
+;
+
+fragment DefinitionReady:
+    'DoR' dod=STRING (',' dod+=STRING)*
+;
+
+fragment Learning:
+    'learning' dod=STRING (',' dod+=STRING)*
+;

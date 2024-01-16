@@ -9,44 +9,39 @@ Backlog:
 
 Epic :
     'epic' id=ID '{'
-        (Name 
-        |Description 
-        |process=EpicProcess)*
+        (Name  
+        |Description
+        |DefinitionDone
+        |DefinitionReady
+        |Learning
+        |'process' ':' process=[Process:QualifiedName])*  
         '}'
-;
-
-EpicProcess:
-    'process' ':' type=[Process:QualifiedName]
 ;
 
 AtomicUserStory :
     'userstory' id=ID '{' 
         (Name 
-        | Description
-        | epic=AtomicUserStoryEpic 
-        |activity=AtomicUserStoryActivity
+        |Description
+        |DefinitionDone
+        |DefinitionReady
+        |Learning
+        |'epic' epic=[Epic:QualifiedName] 
+        |'activity' activity=[Activity:QualifiedName]
         )*'}'
-;
-
-AtomicUserStoryEpic:
-    'epic' ':' type=[Epic:QualifiedName]
-;
-
-AtomicUserStoryActivity:
-    'activity' ':' type=[Activity:QualifiedName]
 ;
 
 TaksBacklog:
     'task' id=ID '{'
         (Name 
-        |Description 
-        |userstory=AtomicUserStoryTask)*
+        |Description
+        |DefinitionDone
+        |DefinitionReady
+        |Learning 
+        |'userstory' userstory=[AtomicUserStory:QualifiedName]
+        |'task' task=[Task:QualifiedName])*
         '}'
 ;
-
-AtomicUserStoryTask:
-    'userstory' ':' type=[AtomicUserStory:QualifiedName]
-;
+    
 
 
 

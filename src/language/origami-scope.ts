@@ -1,6 +1,6 @@
 import { AstNode, AstNodeDescription, DefaultScopeComputation, LangiumDocument } from "langium";
 import { CancellationToken } from "vscode-languageclient";
-import { Model, isAtomicUserStory, isBacklog, isEpic,isProcess} from "./generated/ast.js";
+import { Model, isBacklog, isEpic,isProcess} from "./generated/ast.js";
 
 /**
  * Gerador customizado para o escopo global do arquivo.
@@ -19,8 +19,8 @@ export class CustomScopeComputation extends DefaultScopeComputation {
         const epics = root.components.filter(isBacklog).flatMap(backlog => 
             backlog.userstories.filter(isEpic).map(epic => this.descriptions.createDescription(epic, `${epic.id}`, document)))
         
-        const userstories = root.components.filter(isBacklog).flatMap(backlog => 
-            backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.descriptions.createDescription(atomicUserStory, `${atomicUserStory.id}`, document)))   
+        /*const userstories = root.components.filter(isBacklog).flatMap(backlog => 
+            backlog.userstories.filter(isAtomicUserStory).map(atomicUserStory => this.descriptions.createDescription(atomicUserStory, `${atomicUserStory.id}`, document)))   */
        
         // Define Process as Global
         const processes = root.components.filter(isProcess).flatMap(
@@ -32,9 +32,10 @@ export class CustomScopeComputation extends DefaultScopeComputation {
     
          
         // Define Activity 
-        const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.id}`, document)))
+        //const activities = root.components.filter(isProcess).flatMap(process => process.activities.map(activity => this.descriptions.createDescription(activity, `${activity.id}`, document)))
         
+        //userstories activities
         
-        return default_global.concat(epics,userstories,processes,activities)
+        return default_global.concat(epics,processes)
     }
 }
