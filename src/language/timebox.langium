@@ -1,7 +1,7 @@
 import 'helpers'
 
 TimeBox:
-    'timeboxes' name=ID '{'
+    'timebox' name=ID '{'
         'goal' ':' goal=STRING
     '}' 
     ;
