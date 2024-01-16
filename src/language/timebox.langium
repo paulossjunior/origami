@@ -1,9 +1,8 @@
-import 'terminals'
 import 'helpers'
 
 TimeBox:
-    'timeboxes' '{'
-        'name' ':' name=STRING
+    'timeboxes' name=ID '{'
+        'goal' ':' goal=STRING
     '}' 
     ;
 
