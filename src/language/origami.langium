@@ -6,6 +6,7 @@ import 'projects'
 import 'backlog'
 import 'processes'
 import 'timebox'
+import 'team'
 
 entry Model:    
     (project=Project)
