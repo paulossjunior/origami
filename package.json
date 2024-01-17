@@ -67,7 +67,7 @@
         "commands": [
             {
                 "command": "origami.generate",
-                "title": "Generate Jira CSV"
+                "title": "Sincronize With Project Management"
             }
         ],
         "menus": {
