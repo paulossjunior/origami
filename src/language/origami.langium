@@ -9,6 +9,7 @@ import 'timebox'
 
 entry Model:    
     (project=Project)
+    (team?=Team)
     (components+=(Process|Backlog|TimeBox))*
 
 ;

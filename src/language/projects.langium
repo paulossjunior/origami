@@ -11,4 +11,14 @@ Project:
     '}' 
     ;
 
+Team: 'team' name=STRING '{'
+    (teammember+=TeamMember)*
+'}'
+;
 
+TeamMember:
+    'teammember' '{' 
+        'name' ':' name=STRING 
+        & 'email' ':' email=ID 
+    '}'
+;
