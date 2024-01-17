@@ -3,7 +3,7 @@ import 'processes'
 
 Backlog:
     'backlog' id=ID '{'
-        (userstories += (Epic|AtomicUserStory|TaksBacklog))*
+        (userstories += (Epic|AtomicUserStory|TaskBacklog))*
     '}' 
     ;
 
@@ -30,7 +30,7 @@ AtomicUserStory :
         )*'}'
 ;
 
-TaksBacklog:
+TaskBacklog:
     'task' id=ID '{'
         (Name 
         |Description

@@ -1,4 +1,4 @@
-import { Activity, AtomicUserStory, Epic, isAtomicUserStory, isBacklog, isEpic, isTaksBacklog, Model, TaksBacklog,  } from '../../language/generated/ast.js'
+import { Activity, AtomicUserStory, Epic, isAtomicUserStory, isBacklog, isEpic, isTaskBacklog, Model, TaskBacklog, Task } from '../../language/generated/ast.js'
 import {JiraIntegration } from './service/JiraIntegrator.js'
 
 declare var jiraIntegration;
@@ -14,7 +14,7 @@ export function generateAPI(model: Model) : void {
 
   const epics = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isEpic))
   const userstories = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isAtomicUserStory))
-  const tasks =  model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaksBacklog))
+  const tasks =  model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaskBacklog))
   
   createEPIC(epics)
   createUserStory(userstories)
@@ -25,17 +25,20 @@ async function createEPIC(epics: Epic[]) {
 
   epics.forEach ((epic) => {
 
-    const epicJira = jiraIntegration.createEPIC(epic.name,epic.description);
-
-    epicJira.then((id) =>{
-      
+    jiraIntegration.createEPIC(epic.name,epic.description)
+    .then(result => {
+      console.log(`EPIC: ${result.key}`);
       if (epic.process){
-        // Each Activity in a process is maped to a User Story
-        epic.process.ref.activities.map(activity =>  
-             createUserStoryFromActivity(activity,id))
+        epic.process.ref.activities.map(async activity => await createUserStoryFromActivity(activity,result.key))
       }
 
-    })
+      
+    }).catch(error => {
+      // Handle the timeout or any other errors
+      console.error(error);
+    });
+
+    
     
   });
   
@@ -43,15 +46,28 @@ async function createEPIC(epics: Epic[]) {
 
 async function  createUserStoryFromActivity (activity: Activity, epicID: string){
 
-  const userStoryID = jiraIntegration.createUserStory(activity.name,activity.description, epicID)
+  jiraIntegration.createUserStory(activity.name,activity.description, epicID).then(result => {
+    
+    console.log(`US: ${result.key}`);
 
-  userStoryID.then((id) => {
-    // Erro de promises aqui
-    activity.tasks.map(task => {
-      jiraIntegration.createSubTask(task.name,task.description,id);
+    activity.tasks.map(async task => await createSubTaskFromTaskBacklog(task,result.key))
 
-    })
+  }).catch(error => {
+    // Handle the timeout or any other errors
+    console.error(error);
+  });
 
+}
+
+async function createSubTaskFromTaskBacklog(task: Task, usID:string) {
+
+  await jiraIntegration.createSubTask(task.name,task.description, usID).then(result => {
+    
+    console.log(`Task: ${result.key}`);
+
+  }).catch(error => {
+    // Handle the timeout or any other errors
+    console.error(error);
   });
 
 }
@@ -61,7 +77,7 @@ function createUserStory(atocmiUserStories: AtomicUserStory[]) {
   
 }
 
-function createTaskBacklog(backlogTasks: TaksBacklog[]) {
-  backlogTasks.map(task => jiraIntegration.createTask(task.name, task.description))
+async function createTaskBacklog(backlogTasks: TaskBacklog[]) {
+  backlogTasks.map( task =>  jiraIntegration.createTask(task.name, task.description))
   
 }

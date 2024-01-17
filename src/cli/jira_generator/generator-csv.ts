@@ -1,4 +1,4 @@
-import { Epic, AtomicUserStory, isAtomicUserStory, isBacklog, isEpic, Model, isTaksBacklog, TaksBacklog } from '../../language/generated/ast.js'
+import { Epic, AtomicUserStory, isAtomicUserStory, isBacklog, isEpic, Model, isTaskBacklog, TaskBacklog } from '../../language/generated/ast.js'
 import fs from "fs";
 import { createPath} from '../generator-utils.js'
 import path from 'path'
@@ -11,7 +11,7 @@ export function generateJiraCSV(model: Model, target_folder: string) : void {
 
     const epics = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isEpic))
     const userStories = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isAtomicUserStory))
-    const tasks = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaksBacklog))
+    const tasks = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaskBacklog))
 
    
      const JIRA_PATH = createPath(target_folder,'jira')
@@ -19,7 +19,7 @@ export function generateJiraCSV(model: Model, target_folder: string) : void {
     fs.writeFileSync(path.join(JIRA_PATH, "/jira-backlog.csv"), createCSV(epics,userStories,tasks))
 }
 
-function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[], tasks: TaksBacklog[],): string {
+function createCSV(epics: Epic[],atomicUserStories: AtomicUserStory[], tasks: TaskBacklog[],): string {
     return expandToStringWithNL`
     Issue key, Summary,Description,issuetype,Parent
     ${createLinesFromEpic(epics)}
@@ -77,13 +77,13 @@ function createLineFromUserStory(atomicUserStory: AtomicUserStory): string {
     
 }
 
-function createLinesFromTaskBacklog(tasks: TaksBacklog[]):string {
+function createLinesFromTaskBacklog(tasks: TaskBacklog[]):string {
     return expandToString`
     ${tasks.map(task => createLineFromTaskBacklog(task)).join('\n')}
     `
 }
 
-function createLineFromTaskBacklog(task: TaksBacklog):string{
+function createLineFromTaskBacklog(task: TaskBacklog):string{
     const id = task.id
     const name = task.name?? ''
     const description = task.description ?? ''
