@@ -1,6 +1,9 @@
 
 import {Util} from './util.js';
 
+const URL_ISSE = "/rest/api/3/issue"
+const URL_SPRINT = "/rest/agile/1.0/sprint"
+
 export class JiraIntegrationService {
 
   projectKey: string;
@@ -8,6 +11,8 @@ export class JiraIntegrationService {
   email:string;
   apiToken:string;
   host:string
+
+
 
   constructor(email: string, apiToken: string, host: string, projectkey: string){
       
@@ -43,7 +48,7 @@ export class JiraIntegrationService {
 
   private async createIssue (summary: string, type: string, description: string,parent?:string){
       
-      const URL = this.host+"/rest/api/3/issue"
+      const URL = this.host+URL_ISSE
 
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
@@ -64,7 +69,7 @@ export class JiraIntegrationService {
           }${parentPart}          
         }
       }`
-      console.log (data)
+
       return Promise.race([
         Util.send(URL,this.email, this.apiToken, data),
         timeoutPromise,
@@ -72,23 +77,33 @@ export class JiraIntegrationService {
 
   }
 
+  public async getBoardIdByProjectKey(projectKey:string){
+
+    
+    const URL = this.host+`/rest/agile/1.0/board?projectKeyOrId=${projectKey}`
+    
+    const response =await Util.get(URL,this.email, this.apiToken)
+    const board = response["values"][0];
+    return board["id"]
+
+  }
 
   public async createSprint (name:string, goal: string, startDate: string, endDate: string){
     try {
       
-      const URL = this.host+'/rest/agile/1.0/sprint'
+      const URL = this.host+URL_SPRINT
       
       startDate = Util.convertDateFormat(startDate)
       endDate = Util.convertDateFormat (endDate)
       
-      console.log (startDate)
-
+      const boardID = await this.getBoardIdByProjectKey(this.projectKey)
+     
       const data = `{
         "startDate": "${startDate}",
         "name": "${name}",
         "endDate": "${endDate}",
         "goal": "${goal}",
-        "originBoardId": 3
+        "originBoardId": ${boardID}
       }`;
 
   

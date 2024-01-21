@@ -10,6 +10,33 @@ export class Util {
       
                
       }
+    
+      public static async get (URL: string, email:string, apitoken:string){
+        try{
+            const response = await fetch(`${URL}`, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Basic ${Buffer.from(`${email}:${apitoken}`).toString('base64')}`,
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                }
+              })
+            
+            
+            if (!response.ok) {
+                const message = await response.json()
+                
+                throw new Error(`HTTP error! Status: ${response.status}-${JSON.stringify(message)}`);
+            }
+                               
+            return await response.json();
+
+        }catch (error) {
+            throw new Error(`Error fetching data: ${error.message}`);
+          }
+        
+    }
+   
     public static async send (URL: string, email:string, apitoken:string, data: any){
         try{
             const response = await fetch(`${URL}`, {
