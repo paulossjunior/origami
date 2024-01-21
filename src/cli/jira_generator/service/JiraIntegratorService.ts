@@ -12,8 +12,6 @@ export class JiraIntegrationService {
   apiToken:string;
   host:string
 
-
-
   constructor(email: string, apiToken: string, host: string, projectkey: string){
       
       this.projectKey = projectkey;
