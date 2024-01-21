@@ -1,9 +1,16 @@
 import 'helpers'
 import 'backlog'
-import 
+
+type timeBoxTask = Epic| AtomicUserStory| TaskBacklog;
+
 TimeBox:
-    'timebox' name=ID '{'
-        'goal' ':' goal=STRING
+    'timebox' id=ID '{'
+        (
+        Name
+        |Description
+        |'startDate'':' startDate=DATE
+        |'endDate' ':' endDate=DATE
+        )*
     '}' 
     ;
 

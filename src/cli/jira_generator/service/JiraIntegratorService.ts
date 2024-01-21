@@ -1,94 +1,59 @@
 
-import { Version3Client } from 'jira.js';
-import { Issue } from 'jira.js/out/agile/issue.js';
+import {Util} from './util.js';
 
 export class JiraIntegrationService {
 
-    client: Version3Client;
     projectKey: string;
     timeout: number;
+    email:string;
+    apiToken:string;
+    host:string
 
     constructor(email: string, apiToken: string, host: string, projectkey: string){
       
       this.projectKey = projectkey;
       this.timeout = 5000
+      this.email = email;
+      this.apiToken = apiToken;
+      this.host = host;
+           
 
-      this.client = new Version3Client({
-            host,
-            authentication: {
-              basic: {
-                email,
-                apiToken,
-              },
-            },
-          });
-        
     }
+   
 
-    public async createEPIC (summary: string, description: string, parent?:string){
+  public async createSprint (name:string, goal: string, startDate: string, endDate: string){
+    try {
       
-      return await this.createIssue(summary,'Epic',description, parent)
-    }
-
-    public async createUserStory (summary: string,description: string,parent?:string){
+      const URL = this.host+'/rest/agile/1.0/sprint'
       
-      return await this.createIssue(summary,'Story',description,parent)
-    }
-
-    public async createTask (summary: string, description: string,parent?:string){
+      startDate = Util.convertDateFormat(startDate)
+      endDate = Util.convertDateFormat (endDate)
       
-      return await this.createIssue(summary,'Task',description,parent)
-    }
+      console.log (startDate)
 
-    public async createLink (parent: string, child: string){
-
-      this.client.issueLinks.linkIssues({
-        inwardIssue: { key: parent },
-        outwardIssue: { key : child },
-        type: { name: 'blocks' },
-      })
-    }
-
-
-    public async createSubTask (summary: string,description: string,parent?:string){
-     
-      return await this.createIssue(summary,'Subtarefa',description,parent)
-    }
-
-  public async createIssue (summary: string, type: string, description: string,parent?:string){
+      const data = `{
+        "startDate": "${startDate}",
+        "name": "${name}",
+        "endDate": "${endDate}",
+        "goal": "${goal}",
+        "originBoardId": 3
+      }`;
       
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Timeout'));
-        }, this.timeout);
-      });
+      console.log (data)
+      const response = await Util.send(URL,this.email, this.apiToken, data)
+      console.log(response)
 
-      const issue = {
-        fields: {
-          summary: summary,
-          description: description,
-          issuetype: {
-            name: type
-          },
-          project: {
-            key: this.projectKey,
-          },
-          parent:{
-            key: parent
-          },
-        }
-      }
-      console.log(`${issue}`)
-
-      return Promise.race([
-        this.client.issues.createIssue(issue),
-        timeoutPromise,
-      ]);
+    }catch (error) {
+      console.error('Error:', error.message);
+    }
+   
+    
+   
+    
+   
+  
 
   }
 
-    public  async getIssue (id: string): Promise<Issue> {
-      return await this.client.issues.getIssue({ issueIdOrKey: id });
-    }
-}
 
+}
