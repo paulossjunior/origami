@@ -1,5 +1,53 @@
 import fetch from 'node-fetch';
+import fs from "fs";
+import path from 'path';
+
+
 export class Util {
+
+  public static appendFile (fileDirectory:string, fileName:string, value:string){
+
+    fs.appendFileSync(fileDirectory+"/"+fileName, value,'utf-8')
+  }
+
+  public static createFile(fileDirectory:string, fileName:string, map:Map<string,string>){
+       
+    const mapArray = Array.from(map);
+    const data = JSON.stringify(mapArray,null,2)
+    
+    fs.writeFileSync(path.join(fileDirectory, `/${fileName}`), data, 'utf-8')
+  }
+
+  public static mkdirSync(fileDirectory:string){
+    try{
+      fs.mkdirSync(fileDirectory, {recursive:true});
+    }catch(error){
+      throw new Error(`Error fetching data: ${error.message}`);
+    }
+    
+  }
+
+  public static readFiletoMap(filePath:string, map: Map<string,string>){
+    try{
+      
+      const data = fs.readFileSync(filePath,'utf8')
+      const objects = JSON.parse(data)
+      map = new Map(Object.entries(objects))
+
+    }catch(error){
+      throw new Error(`Error fetching data: ${error.message}`);
+    }
+  }
+
+  public static existFile(filePath: string):boolean{
+      try{
+        fs.accessSync(filePath, fs.constants.F_OK);
+        return true
+      }
+      catch(error){
+        return false
+      }
+   }
 
     public static convertDateFormat(inputDate) {
         // Split the input date string into day, month, and year

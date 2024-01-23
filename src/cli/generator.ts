@@ -7,7 +7,7 @@ export function generateJavaScript(model: Model, filePath: string, destination: 
     const final_destination = extractDestination(filePath, destination)
 
     generateJiraCSV(model,final_destination)
-    generateAPI(model)
+    generateAPI(model,final_destination)
    
     return final_destination;
 }

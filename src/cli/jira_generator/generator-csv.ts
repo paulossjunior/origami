@@ -14,7 +14,7 @@ export function generateJiraCSV(model: Model, target_folder: string) : void {
     const tasks = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaskBacklog))
 
    
-     const JIRA_PATH = createPath(target_folder,'jira')
+    const JIRA_PATH = createPath(target_folder,'jira')
     
     fs.writeFileSync(path.join(JIRA_PATH, "/jira-backlog.csv"), createCSV(epics,userStories,tasks))
 }
