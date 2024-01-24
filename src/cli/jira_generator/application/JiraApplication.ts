@@ -4,6 +4,8 @@ import {Util} from '../service/util.js';
 import { createPath} from '../../generator-utils.js'
 import { JsonFileCRUD } from "../dao/JsonFileCRUD.js";
 import path from "path";
+import { IssueDAO } from "../dao/IssueDAO.js";
+import { SprintDAO } from "../dao/SprintDAO.js";
 
 export class JiraApplication {
 
@@ -13,19 +15,17 @@ export class JiraApplication {
   sprintsMap: Map<string,string>
   target_folder : string
   DB_PATH: string
-  issueDAO: JsonFileCRUD
-  sprintDAO: JsonFileCRUD
+  issueDAO: IssueDAO
+  sprintDAO: SprintDAO
 
   constructor(email: string, apiToken: string, host: string, projectKey: string, target_folder:string){
     this.target_folder = target_folder
    
     this.DB_PATH = createPath(this.target_folder,'db')
+     
+    this.issueDAO = new IssueDAO(this.DB_PATH) 
     
-    const ISSUEPATH = path.join(this.DB_PATH, 'issues.json');
-    this.issueDAO = new JsonFileCRUD(ISSUEPATH)
-
-    const SPRINTPATH = path.join(this.DB_PATH, 'sprints.json');
-    this.sprintDAO = new JsonFileCRUD(SPRINTPATH)
+    this.sprintDAO = new SprintDAO(this.DB_PATH)
 
 
     Util.mkdirSync(target_folder)
