@@ -14,13 +14,19 @@ export class JiraApplication {
   target_folder : string
   DB_PATH: string
   issueDAO: JsonFileCRUD
+  sprintDAO: JsonFileCRUD
 
   constructor(email: string, apiToken: string, host: string, projectKey: string, target_folder:string){
     this.target_folder = target_folder
    
     this.DB_PATH = createPath(this.target_folder,'db')
-    const ISSEPATH = path.join(this.DB_PATH, 'issues.json');
-    this.issueDAO = new JsonFileCRUD(ISSEPATH)
+    
+    const ISSUEPATH = path.join(this.DB_PATH, 'issues.json');
+    this.issueDAO = new JsonFileCRUD(ISSUEPATH)
+
+    const SPRINTPATH = path.join(this.DB_PATH, 'sprints.json');
+    this.sprintDAO = new JsonFileCRUD(SPRINTPATH)
+
 
     Util.mkdirSync(target_folder)
     this.jiraIntegrationService = new JiraIntegrationService(email,apiToken,host,projectKey);         
@@ -109,7 +115,16 @@ export class JiraApplication {
   }
   
   public async createTimeBoxes(timeBoxes:TimeBox[]) {
-    timeBoxes.map(async timeBox => await this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate));
+    timeBoxes.map(async timeBox => {
+      if (!this.idExists(timeBox.id, this.sprintDAO)){
+        this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate).then( result => {
+          this.saveOnFile(timeBox.id, result, this.sprintDAO, "Sprint")
+        })
+      }
+      
+    }
+      
+    );
   
   }
    
