@@ -2,6 +2,8 @@ import { Epic, AtomicUserStory, isAtomicUserStory, TimeBox, Activity, Task, isBa
 import { JiraIntegrationService } from "../service/JiraIntegratorService.js";
 import {Util} from '../service/util.js';
 import { createPath} from '../../generator-utils.js'
+import { JsonFileCRUD } from "../dao/JsonFileCRUD.js";
+import path from "path";
 
 export class JiraApplication {
 
@@ -11,18 +13,20 @@ export class JiraApplication {
   sprintsMap: Map<string,string>
   target_folder : string
   DB_PATH: string
+  issueDAO: JsonFileCRUD
 
   constructor(email: string, apiToken: string, host: string, projectKey: string, target_folder:string){
     this.target_folder = target_folder
-    
+   
     this.DB_PATH = createPath(this.target_folder,'db')
+    const ISSEPATH = path.join(this.DB_PATH, 'issues.json');
+    this.issueDAO = new JsonFileCRUD(ISSEPATH)
 
-    this.issuesMap = new Map<string,string>
-    this.sprintsMap = new Map<string,string>
-      
     Util.mkdirSync(target_folder)
     this.jiraIntegrationService = new JiraIntegrationService(email,apiToken,host,projectKey);         
-      
+    
+
+    
   }
     
   public async run(model:Model){
@@ -32,9 +36,6 @@ export class JiraApplication {
     const userstories = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isAtomicUserStory))
     const tasks =  model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaskBacklog))
       
-    //Carregando os elementos que estão nos arquivos
-    await this.readDBFiles()
-
     //Criando os EPIC que não foram criados anteriormente
     await this.createEPIC(epics)
     await this.createUserStory(userstories)
@@ -55,7 +56,7 @@ export class JiraApplication {
      this.jiraIntegrationService.createEPIC(epic.name,description)
     .then(result => {
       const key = (result as any).key 
-      this.addIssue(epic.id, JSON.stringify(result))
+      this.saveOnFile(epic.id, result, this.issueDAO, "Epic")  
 
       if (epic.process){
         epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key))
@@ -73,10 +74,11 @@ export class JiraApplication {
   public async createUserStoryFromActivity (activity: Activity, epicID: string){
   
     await this.jiraIntegrationService.createUserStory(activity.name,activity.description, epicID).then(result => {
-      this.addIssue(activity.id, JSON.stringify(result))   
+      
+      this.saveOnFile(activity.id,result, this.issueDAO, "AtomicUserStory")      
       const key = (result as any).key 
       activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key))
-     
+      
       })
       .catch(error => {
         console.error(error);
@@ -87,8 +89,7 @@ export class JiraApplication {
   public async createSubTaskFromTaskBacklog(task: Task, usID:string) {
   
     await this.jiraIntegrationService.createSubTask(task.name,task.description, usID).then(result => {
-  
-      this.addIssue(task.id, JSON.stringify(result))
+      this.saveOnFile(task.id, result, this.issueDAO, "Task")
     
       }).catch(error => {
         console.error(error);
@@ -106,7 +107,8 @@ export class JiraApplication {
     // Verificar quando tiver relação com uma EPIC
     atocmiUserStories.map(atomicUserStory => {
       this.jiraIntegrationService.createUserStory(atomicUserStory.name,atomicUserStory.description).then(result => {
-        this.addIssue(atomicUserStory.id, JSON.stringify(result))
+               
+        this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "AtomicUserStory")
       })
     })
     
@@ -118,29 +120,14 @@ export class JiraApplication {
   
     backlogTasks.map(task =>  {
       this.jiraIntegrationService.createTask(task.name, task.description).then(result => {
-        this.addIssue(task.id, JSON.stringify(result))
+        this.saveOnFile(task.id, result, this.issueDAO, "Task")  
       })
     })
     
-  }
-  
-  private async readDBFiles(){
-    const issueFilePath = this.DB_PATH+"/issue.json"
-    const exists = Util.existFile(issueFilePath);
-    
-    if (exists){
-      Util.readFiletoMap(issueFilePath, this.issuesMap)
-      const mapSize = this.issuesMap.size;
-      console.log('Size of the Map:', mapSize);
-    }
-  
-    
-  }
+  }  
 
-  private async addIssue(id:string, result:string){
-    
-    this.issuesMap.set(id, result)    
-    Util.createFile(this.DB_PATH,"issue.json",this.issuesMap)
+  private saveOnFile(key:any, value:any, _function:any, type:string){
+    value.type = type
+    _function.create(key, value)
   }
-
 }   
