@@ -43,57 +43,68 @@ export class JiraApplication {
     await this.createTimeBoxes(timeBoxes)
 
   }
-        
-  public async createEPIC(epics: Epic[]) {
-
-    epics.forEach ((epic) => {
+  
+  private async _createEPIC(epic:Epic){
     let description = epic.description ?? ""
       
     if (epic.process){
       description = epic.process.ref.description ?? ""
     }
-      
-     this.jiraIntegrationService.createEPIC(epic.name,description)
-    .then(result => {
-      const key = (result as any).key 
-      this.saveOnFile(epic.id, result, this.issueDAO, "Epic")  
+    
+    this.jiraIntegrationService.createEPIC(epic.name,description)
+     .then(result => {
+        const key = (result as any).key 
+        this.saveOnFile(epic.id, result, this.issueDAO, "Epic")  
 
-      if (epic.process){
-        epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key))
-      }      
-      
-      }).catch(error => {
-        console.error(error);
-      });
-  
-      
+        if (epic.process){
+          epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key))
+        }      
+        
+        }).catch(error => {
+          console.error(error);
+    });           
+  }
+
+  public async createEPIC(epics: Epic[]) {
+
+    epics.forEach ((epic) => {
+      const id = `${epic.id}`
+      if (!this.idExists(id, this.issueDAO)){
+        this._createEPIC(epic)
+      }     
     });
     
   }
   
   public async createUserStoryFromActivity (activity: Activity, epicID: string){
-  
-    await this.jiraIntegrationService.createUserStory(activity.name,activity.description, epicID).then(result => {
+    const id = `${epicID}-${activity.id}`
+    
+    if (!this.idExists(id, this.issueDAO)){
+      await this.jiraIntegrationService.createUserStory(activity.name,activity.description, epicID).then(result => {
       
-      this.saveOnFile(activity.id,result, this.issueDAO, "AtomicUserStory")      
-      const key = (result as any).key 
-      activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key))
-      
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  
+        this.saveOnFile(id,result, this.issueDAO, "AtomicUserStory")      
+        const key = (result as any).key 
+        activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key))
+        
+      }).catch(error => {
+          console.error(error);
+      });      
+    }  
+    
   }
   
   public async createSubTaskFromTaskBacklog(task: Task, usID:string) {
-  
-    await this.jiraIntegrationService.createSubTask(task.name,task.description, usID).then(result => {
-      this.saveOnFile(task.id, result, this.issueDAO, "Task")
+    const id = `${usID}-${task.id}`
     
+    if (!this.idExists(id, this.issueDAO)){
+
+      await this.jiraIntegrationService.createSubTask(task.name,task.description, usID).then(result => {
+        this.saveOnFile(id, result, this.issueDAO, "Task")
+      
       }).catch(error => {
-        console.error(error);
+          console.error(error);
       });
+    }   
   
   }
   
@@ -101,15 +112,15 @@ export class JiraApplication {
     timeBoxes.map(async timeBox => await this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate));
   
   }
-  
-  
+   
   public async createUserStory(atocmiUserStories: AtomicUserStory[]) {
     // Verificar quando tiver relação com uma EPIC
     atocmiUserStories.map(atomicUserStory => {
-      this.jiraIntegrationService.createUserStory(atomicUserStory.name,atomicUserStory.description).then(result => {
-               
-        this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "AtomicUserStory")
-      })
+      if (!this.idExists(atomicUserStory.id, this.issueDAO)){
+        this.jiraIntegrationService.createUserStory(atomicUserStory.name,atomicUserStory.description).then(result => {
+          this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "AtomicUserStory")
+        })
+      }      
     })
     
   }
@@ -119,9 +130,12 @@ export class JiraApplication {
     // Verificar quando tiver relação com uma US
   
     backlogTasks.map(task =>  {
-      this.jiraIntegrationService.createTask(task.name, task.description).then(result => {
-        this.saveOnFile(task.id, result, this.issueDAO, "Task")  
-      })
+      if (!this.idExists(task.id, this.issueDAO)){
+        this.jiraIntegrationService.createTask(task.name, task.description).then(result => {
+          this.saveOnFile(task.id, result, this.issueDAO, "Task")  
+        })
+      }
+      
     })
     
   }  
@@ -129,5 +143,9 @@ export class JiraApplication {
   private saveOnFile(key:any, value:any, _function:any, type:string){
     value.type = type
     _function.create(key, value)
+  }
+
+  private idExists (key:any, _function){
+    return _function.idExists(key)
   }
 }   

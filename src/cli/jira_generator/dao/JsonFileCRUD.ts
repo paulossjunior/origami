@@ -19,6 +19,11 @@ export class JsonFileCRUD {
       
       this.write(data);
     }
+    
+    public idExists(id) {
+      const data = this.read();
+      return !!data[id]; // Returns true if the ID exists, false otherwise
+    }
 
     private createFileIfNotExists() {
       try {
