@@ -2,8 +2,6 @@ import { Epic, AtomicUserStory, isAtomicUserStory, TimeBox, Activity, Task, isBa
 import { JiraIntegrationService } from "../service/JiraIntegratorService.js";
 import {Util} from '../service/util.js';
 import { createPath} from '../../generator-utils.js'
-import { JsonFileCRUD } from "../dao/JsonFileCRUD.js";
-import path from "path";
 import { IssueDAO } from "../dao/IssueDAO.js";
 import { SprintDAO } from "../dao/SprintDAO.js";
 
