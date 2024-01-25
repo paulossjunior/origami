@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.origami",
-      "match": "\\b(DoD|DoR|activity|backlog|description|email|endDate|epic|host|id|learning|name|process|project|startDate|task|team|teammember|timebox|token|userstory)\\b"
+      "match": "\\b(DoD|DoR|activity|assigner|backlog|description|email|endDate|epic|host|id|item|learning|name|planning|process|project|startDate|task|team|teammember|timebox|token|userstory)\\b"
     },
     {
       "name": "string.quoted.double.origami",

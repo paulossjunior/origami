@@ -11,44 +11,45 @@ export class JiraApplication {
   jiraIntegrationService: JiraIntegrationService
   issuesMap:  Map<string,string>
   sprintsMap: Map<string,string>
-  target_folder : string
-  DB_PATH: string
   issueDAO: IssueDAO
   sprintDAO: SprintDAO
 
   constructor(email: string, apiToken: string, host: string, projectKey: string, target_folder:string){
-    this.target_folder = target_folder
-   
-    this.DB_PATH = createPath(this.target_folder,'db')
-     
-    this.issueDAO = new IssueDAO(this.DB_PATH) 
-    
-    this.sprintDAO = new SprintDAO(this.DB_PATH)
-
 
     Util.mkdirSync(target_folder)
-    this.jiraIntegrationService = new JiraIntegrationService(email,apiToken,host,projectKey);         
-    
 
+    const DB_PATH = createPath(target_folder,'db')
+
+    this.issueDAO = new IssueDAO(DB_PATH) 
+
+    this.sprintDAO = new SprintDAO(DB_PATH)
+   
+    this.jiraIntegrationService = new JiraIntegrationService(email,apiToken,host,projectKey);         
     
   }
     
   public async run(model:Model){
 
     const timeBoxes = model.components.filter(isTimeBox)
+
     const epics = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isEpic))
+
     const userstories = model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isAtomicUserStory))
+
     const tasks =  model.components.filter(isBacklog).flatMap(backlog => backlog.userstories.filter(isTaskBacklog))
       
-    //Criando os EPIC que não foram criados anteriormente
     await this.createEPIC(epics)
+
     await this.createUserStory(userstories)
+
     await this.createTaskBacklog(tasks)
+
     await this.createTimeBoxes(timeBoxes)
 
   }
   
   private async _createEPIC(epic:Epic){
+
     let description = epic.description ?? ""
       
     if (epic.process){
@@ -58,7 +59,7 @@ export class JiraApplication {
     this.jiraIntegrationService.createEPIC(epic.name,description)
      .then(result => {
         const key = (result as any).key 
-        this.saveOnFile(epic.id, result, this.issueDAO, "Epic")  
+        this.saveOnFile(epic.id, result, this.issueDAO, "epic")  
 
         if (epic.process){
           epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key))
@@ -81,12 +82,17 @@ export class JiraApplication {
   }
   
   public async createUserStoryFromActivity (activity: Activity, epicID: string){
-    const id = `${epicID}-${activity.id}`
+    var id = `${activity.id}`
+    
+    if (epicID){
+      id = `${epicID}.${activity.id}`
+    }
+    
     
     if (!this.idExists(id, this.issueDAO)){
       await this.jiraIntegrationService.createUserStory(activity.name,activity.description, epicID).then(result => {
       
-        this.saveOnFile(id,result, this.issueDAO, "AtomicUserStory")      
+        this.saveOnFile(id,result, this.issueDAO, "atomicuserstory")      
         const key = (result as any).key 
         activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key))
         
@@ -98,12 +104,13 @@ export class JiraApplication {
   }
   
   public async createSubTaskFromTaskBacklog(task: Task, usID:string) {
-    const id = `${usID}-${task.id}`
+
+    const id = `${usID}.${task.id}`
     
     if (!this.idExists(id, this.issueDAO)){
 
       await this.jiraIntegrationService.createSubTask(task.name,task.description, usID).then(result => {
-        this.saveOnFile(id, result, this.issueDAO, "Task")
+        this.saveOnFile(id, result, this.issueDAO, "task")
       
       }).catch(error => {
           console.error(error);
@@ -113,11 +120,17 @@ export class JiraApplication {
   }
   
   public async createTimeBoxes(timeBoxes:TimeBox[]) {
+
     timeBoxes.map(async timeBox => {
+
       if (!this.idExists(timeBox.id, this.sprintDAO)){
+
         this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate).then( result => {
-          this.saveOnFile(timeBox.id, result, this.sprintDAO, "Sprint")
+
+          this.saveOnFile(timeBox.id, result, this.sprintDAO, "sprint")
+
         })
+
       }
       
     }
@@ -128,24 +141,43 @@ export class JiraApplication {
    
   public async createUserStory(atocmiUserStories: AtomicUserStory[]) {
     // Verificar quando tiver relação com uma EPIC
+
     atocmiUserStories.map(atomicUserStory => {
+
       if (!this.idExists(atomicUserStory.id, this.issueDAO)){
-        this.jiraIntegrationService.createUserStory(atomicUserStory.name,atomicUserStory.description).then(result => {
-          this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "AtomicUserStory")
+        var description = atomicUserStory.description
+        if (atomicUserStory.activity){
+            description = atomicUserStory.activity.ref.description ?? atomicUserStory.description
+        }
+
+        this.jiraIntegrationService.createUserStory(atomicUserStory.name,description).then(result => {
+
+          this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "atomicuserstory")
+
+          if (atomicUserStory.activity){
+            const key = (result as any).key 
+            atomicUserStory.activity.ref.tasks.map(task =>  this.createSubTaskFromTaskBacklog(task,key))
+           
+          }
+
         })
+
       }      
+
     })
     
   }
   
   public async createTaskBacklog(backlogTasks: TaskBacklog[]) {
     
-    // Verificar quando tiver relação com uma US
-  
     backlogTasks.map(task =>  {
+
       if (!this.idExists(task.id, this.issueDAO)){
+
         this.jiraIntegrationService.createTask(task.name, task.description).then(result => {
-          this.saveOnFile(task.id, result, this.issueDAO, "Task")  
+
+          this.saveOnFile(task.id, result, this.issueDAO, "task")  
+
         })
       }
       
@@ -154,11 +186,15 @@ export class JiraApplication {
   }  
 
   private saveOnFile(key:any, value:any, _function:any, type:string){
+
     value.type = type
+
     _function.create(key, value)
   }
 
   private idExists (key:any, _function){
+
     return _function.idExists(key)
+
   }
 }   
