@@ -7,7 +7,7 @@ import { SprintDAO } from "../dao/SprintDAO.js";
 
 export class JiraApplication {
 
-
+  //TODO: acertar os indices. Formato:EPIC.US.TASK ou EPIC.PROCESS.TASK ou US.TASK
   jiraIntegrationService: JiraIntegrationService
   issuesMap:  Map<string,string>
   sprintsMap: Map<string,string>
@@ -48,6 +48,19 @@ export class JiraApplication {
 
   }
   
+  public async createEPIC(epics: Epic[]) {
+
+    epics.forEach ((epic) => {
+      
+      const id = `${epic.id.toLowerCase()}`
+
+      if (!this.idExists(id, this.issueDAO)){
+        this._createEPIC(epic)
+      }     
+    });
+    
+  }
+
   private async _createEPIC(epic:Epic){
 
     let description = epic.description ?? ""
@@ -58,11 +71,14 @@ export class JiraApplication {
     
     this.jiraIntegrationService.createEPIC(epic.name,description)
      .then(result => {
+        
         const key = (result as any).key 
-        this.saveOnFile(epic.id, result, this.issueDAO, "epic")  
+        const epicID = epic.id.toLowerCase()
+
+        this.saveOnFile(epicID, result, this.issueDAO, "epic")  
 
         if (epic.process){
-          epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key))
+          epic.process.ref.activities.map(async activity => await this.createUserStoryFromActivity(activity,key, epicID))
         }      
         
         }).catch(error => {
@@ -70,31 +86,25 @@ export class JiraApplication {
     });           
   }
 
-  public async createEPIC(epics: Epic[]) {
-
-    epics.forEach ((epic) => {
-      const id = `${epic.id}`
-      if (!this.idExists(id, this.issueDAO)){
-        this._createEPIC(epic)
-      }     
-    });
-    
-  }
   
-  public async createUserStoryFromActivity (activity: Activity, epicID: string){
-    var id = `${activity.id}`
+  private async createUserStoryFromActivity (activity: Activity, epicID: string, epicInternalID:string){
     
+    var activityID = activity.id.toLowerCase()
+
     if (epicID){
-      id = `${epicID}.${activity.id}`
+      activityID = `${epicInternalID}.${activityID}`
     }
     
     
-    if (!this.idExists(id, this.issueDAO)){
+    if (!this.idExists(activityID, this.issueDAO)){
+
       await this.jiraIntegrationService.createUserStory(activity.name,activity.description, epicID).then(result => {
       
-        this.saveOnFile(id,result, this.issueDAO, "atomicuserstory")      
+        this.saveOnFile(activityID,result, this.issueDAO, "atomicuserstory") 
+       
         const key = (result as any).key 
-        activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key))
+
+        activity.tasks.map(async task => await this.createSubTaskFromTaskBacklog(task,key,epicInternalID,activity.id.toLowerCase()))
         
       }).catch(error => {
           console.error(error);
@@ -103,13 +113,18 @@ export class JiraApplication {
     
   }
   
-  public async createSubTaskFromTaskBacklog(task: Task, usID:string) {
-
-    const id = `${usID}.${task.id}`
+  private async createSubTaskFromTaskBacklog(task: Task, usID:string, epicInternalID:string,activityInternalID:string) {
     
+    let id = `${activityInternalID}.${task.id.toLowerCase()}`
+   
+    if (epicInternalID){
+      id = `${epicInternalID}.${activityInternalID}.${task.id.toLowerCase()}`
+    }
+        
     if (!this.idExists(id, this.issueDAO)){
 
       await this.jiraIntegrationService.createSubTask(task.name,task.description, usID).then(result => {
+        
         this.saveOnFile(id, result, this.issueDAO, "task")
       
       }).catch(error => {
@@ -123,11 +138,21 @@ export class JiraApplication {
 
     timeBoxes.map(async timeBox => {
 
-      if (!this.idExists(timeBox.id, this.sprintDAO)){
+      if (!this.idExists(timeBox.id.toLowerCase(), this.sprintDAO)){
 
-        this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate).then( result => {
+        this.jiraIntegrationService.createSprint(timeBox.name, timeBox.description, timeBox.startDate, timeBox.endDate).then( async result => {
 
-          this.saveOnFile(timeBox.id, result, this.sprintDAO, "sprint")
+          await this.saveOnFile(timeBox.id.toLowerCase(), result, this.sprintDAO, "sprint")
+
+          timeBox.plannig.planningItems.map(async planningItem=>{
+            
+            const itemID = planningItem.item.ref.id ?? planningItem.itemString
+            const issue = this.issueDAO.readByKey(itemID)
+            const data = [issue]
+            const sprintID = (result as any).id          
+            console.log (`${data}-${sprintID}`)
+
+          })
 
         })
 
@@ -144,19 +169,30 @@ export class JiraApplication {
 
     atocmiUserStories.map(atomicUserStory => {
 
-      if (!this.idExists(atomicUserStory.id, this.issueDAO)){
+      var atomicUserStoryID = atomicUserStory.id.toLowerCase()
+
+      if (atomicUserStory.epic){
+        atomicUserStoryID = `${atomicUserStory.epic.ref.id.toLowerCase()}.${atomicUserStory.id.toLowerCase()}`
+      }
+
+      if (!this.idExists(atomicUserStoryID, this.issueDAO)){
+       
         var description = atomicUserStory.description
+       
         if (atomicUserStory.activity){
             description = atomicUserStory.activity.ref.description ?? atomicUserStory.description
         }
 
         this.jiraIntegrationService.createUserStory(atomicUserStory.name,description).then(result => {
 
-          this.saveOnFile(atomicUserStory.id, result, this.issueDAO, "atomicuserstory")
-
+          this.saveOnFile(atomicUserStory.id.toLowerCase(), result, this.issueDAO, "atomicuserstory")
+         
+          //Verificando se USer Story foi criado baseada em uma activity
           if (atomicUserStory.activity){
-            const key = (result as any).key 
-            atomicUserStory.activity.ref.tasks.map(task =>  this.createSubTaskFromTaskBacklog(task,key))
+            
+            const key = (result as any).key           
+            
+            atomicUserStory.activity.ref.tasks.map(task =>  this.createSubTaskFromTaskBacklog(task,key,undefined,atomicUserStoryID))
            
           }
 
@@ -185,7 +221,8 @@ export class JiraApplication {
     
   }  
 
-  private saveOnFile(key:any, value:any, _function:any, type:string){
+  
+  private async saveOnFile(key:any, value:any, _function:any, type:string){
 
     value.type = type
 

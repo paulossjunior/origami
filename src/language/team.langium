@@ -1,14 +1,12 @@
-import 'terminals'
 import 'helpers'
 
-Team: 'team' name=STRING '{'
+Team: 'team' id=ID '{'
     (teammember+=TeamMember)*
 '}'
 ;
 
 TeamMember:
-    'teammember' '{' 
-        'name' ':' name=STRING 
-        & 'email' ':' email=ID 
+    'teammember' id=ID '{' 
+        ('name' ':' name=STRING | 'email' ':' email=STRING)*  
     '}'
 ;

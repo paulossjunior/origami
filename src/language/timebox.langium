@@ -1,6 +1,6 @@
 
 import 'backlog'
-
+import 'team'
 type timeBoxTask = Epic| AtomicUserStory| TaskBacklog; 
 
 TimeBox:
@@ -11,10 +11,10 @@ TimeBox:
 
 Planning: 
     'planning' '{' 
-        (item+=PlanningItem)*
+        (planningItems+=PlanningItem)*
     '}' 
 ;
 
 PlanningItem:
-    ('item' ':' item=[timeBoxTask:QualifiedName])? ('item' ':' itemString=STRING)? ('assigner' ':' assigner=STRING)?
+    ('item' ':' item=[timeBoxTask:QualifiedName])? ('item' ':' itemString=STRING)? ('assigner' ':' assigner=[TeamMember:QualifiedName])? ('assigner' ':' assignerString=STRING)?
 ;  

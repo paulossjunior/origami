@@ -75,6 +75,24 @@ export class JiraIntegrationService {
 
   }
 
+  public async moveIssueToSprint(issues:string[], sprintID:string){
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, this.timeout);
+    });
+
+    const URL = this.host+`/rest/agile/1.0/sprint/${sprintID}/issue`
+    const data = `{"issues":["TES-1202","TES-1205","TES-1207"]}`
+    console.log (data)
+
+    return Promise.race([
+      Util.send(URL,this.email, this.apiToken, data),
+      timeoutPromise,
+    ]);
+  }
+
   public async getBoardIdByProjectKey(projectKey:string){
 
     

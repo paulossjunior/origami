@@ -96,5 +96,10 @@
     "main": "./out/extension/main.cjs",
     "bin": {
         "origami-cli": "./bin/cli.js"
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
     }
 }

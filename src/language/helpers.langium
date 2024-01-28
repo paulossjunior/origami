@@ -25,13 +25,13 @@ fragment FullName:
 ;
 
 fragment DefinitionDone:
-    'DoD' dod=STRING (',' dod+=STRING)*
+    'DoD' ':' dod=STRING (',' dod+=STRING)*
 ;
 
 fragment DefinitionReady:
-    'DoR' dod=STRING (',' dod+=STRING)*
+    'DoR' ':' dor=STRING (',' dor+=STRING)*
 ;
 
 fragment Learning:
-    'learning' dod=STRING (',' dod+=STRING)*
+    'learning'':'  value=STRING (',' value+=STRING)*
 ;
