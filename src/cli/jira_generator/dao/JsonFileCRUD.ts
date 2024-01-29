@@ -1,6 +1,6 @@
 import fs from "fs";
 
-//Class to create a json file
+//Class to create a json file X.Y.Z
 export class JsonFileCRUD {
     
   filePath:string
