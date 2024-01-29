@@ -1,13 +1,13 @@
 import type { Model } from '../language/generated/ast.js';
 import * as path from 'node:path';
-import {generateJiraCSV} from './jira_generator/generator-csv.js'
-import {generateAPI} from './jira_generator/integration.js'
+import {APIApplication} from './jira_generator/api_application.js'
+import { MarkdownApplication } from './markdown_generator/markdown_application.js';
 
 export function generateJavaScript(model: Model, filePath: string, destination: string | undefined): string {
     const final_destination = extractDestination(filePath, destination)
-
-    generateJiraCSV(model,final_destination)
-    generateAPI(model,final_destination)
+    
+    APIApplication(model,final_destination)
+    MarkdownApplication(model,final_destination)
    
     return final_destination;
 }

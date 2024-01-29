@@ -5,7 +5,7 @@ import { Model} from '../../language/generated/ast.js'
 import { JiraApplication } from './application/JiraApplication.js';
 
 
-export function generateAPI(model: Model,target_folder: string) : void {
+export function APIApplication(model: Model,target_folder: string) : void {
   
   
   const host = model.project.host; 
